@@ -60,9 +60,49 @@
                                        (eprintf "Error: ~a\n" (exn-message ex)))])
             (displayln (eval-prefix-string expr-string)))))))
 
-;; future implementation
+(define (display-history history)
+  (if (empty? history)
+      (printf "No history yet.\n")
+      (begin
+        (printf "History:\n")
+        (for ([result (reverse history)]
+              [i (in-naturals 1)])
+          (printf "  [~a] ~a\n" i result)))))
+
+(define (repl-loop history)
+  (printf "> ")
+  (flush-output)
+  (let ([input (read-line)])
+    
+    ;; Check for end-of-file (Ctrl+D)
+    (unless (eof-object? input)
+      (let ([trimmed (string-trim input)])
+   
+        (unless (string=? trimmed "quit")
+          ;; Check for history command
+          (cond
+            [(string=? trimmed "history")
+             (display-history history)
+             (repl-loop history)]
+            
+            ;; Skip empty lines
+            [(string=? trimmed "")
+             (repl-loop history)]
+            
+            ;; Evaluate expression
+            [else
+             (with-handlers ([exn:fail? (lambda (ex)
+                                          (printf "Error: Invalid Expression\n")
+                                          (repl-loop history))])
+               (let* ([result (eval-prefix-string trimmed)]
+                      [new-history (cons result history)])
+                 (display-history new-history)
+                 (repl-loop new-history)))]))))))
+
+
 (define (run-interactive-mode)
-  #f)
+  (repl-loop '())
+  )
 
 
 ; Driver
