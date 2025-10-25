@@ -12,3 +12,6 @@ Successfully implemented batch mode with error checking. Will continue testing f
 
 10/25/2025 10:50
 Need to think about how to implement history within my recursive loop. 
+
+10/25/2025 11:40 
+Successfully implemented loop with history displayed and indexed. I now need to find a way to make selection using $. I can probably use a conditional or case statement.
