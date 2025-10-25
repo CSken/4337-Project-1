@@ -40,25 +40,26 @@
       
       [else (error "Error: Invalid Expression" token)]))) ;; the token is invalid
 
-(define (eval-prefix-string str)
-  (let ([tokens (tokenize str)])
-    (when (empty? tokens)
-      (error "Error: Invalid Expression")) ;; Empty input
-    (let-values ([(result remaining) (parse-prefix tokens)])
+(define (eval-prefix-string str history)
+  (let* ([tokens (tokenize str)]
+         [tokens-with-history (replace-history-refs tokens history)])
+    (when (empty? tokens-with-history)
+      (error "Error: Invalid Expression"))
+    (let-values ([(result remaining) (parse-prefix tokens-with-history)])
       (unless (empty? remaining)
-        (error "Error: Invalid Expression" remaining));; parse-prefix tokens did not succeed
+        (error "Error: Invalid Expression")) ;; parse prefix tokens did not succeed
       (real->double-flonum result))))
 
 (define (run-batch-mode)
   (let ([args (current-command-line-arguments)])
     
     (if (< (vector-length args) 2)
-        (eprintf "Error: Invalid Expression") ;; batch mode requires 2 expressions
+        (eprintf "Error: Invalid Expression") ;; Batch mode requires 2 arguments
         (let ([expr-string (vector-ref args 1)])
           
           (with-handlers ([exn:fail? (lambda (ex)
-                                       (eprintf "Error: ~a\n" (exn-message ex)))])
-            (displayln (eval-prefix-string expr-string)))))))
+                                       (eprintf "~a\n" (exn-message ex)))])
+            (displayln (eval-prefix-string expr-string '())))))))
 
 (define (display-history history)
   (if (empty? history)
@@ -68,6 +69,29 @@
         (for ([result (reverse history)]
               [i (in-naturals 1)])
           (printf "  [~a] ~a\n" i result)))))
+
+(define (replace-history-refs tokens history)
+  (map (lambda (token)
+         (cond
+
+           [(not (string? token)) token]
+           
+           [(<= (string-length token) 1) token]
+           
+           [(not (char=? (string-ref token 0) #\$)) token]
+           
+           [else
+            (let* ([index-str (substring token 1)]
+                   [index (string->number index-str)])
+              (if (and (exact-integer? index) (> index 0))
+                  (let ([reversed (reverse history)])
+                    (if (and (>= index 1) (<= index (length reversed)))
+                        (list-ref reversed (- index 1))
+                        (error "Error: Invalid Expression")))
+                  token))]))
+       tokens))
+
+
 
 (define (repl-loop history)
   (printf "> ")
@@ -94,7 +118,7 @@
              (with-handlers ([exn:fail? (lambda (ex)
                                           (printf "Error: Invalid Expression\n")
                                           (repl-loop history))])
-               (let* ([result (eval-prefix-string trimmed)]
+               (let* ([result (eval-prefix-string trimmed history)]
                       [new-history (cons result history)])
                  (display-history new-history)
                  (repl-loop new-history)))]))))))
