@@ -9,3 +9,6 @@ Since the argument parsing for batch mode already exists, I can simply include i
 
 10/24/2025 11:30 PM
 Successfully implemented batch mode with error checking. Will continue testing for additional errors. Will beegin work on implementing interactive mode.
+
+10/25/2025 10:50
+Need to think about how to implement history within my recursive loop. 
