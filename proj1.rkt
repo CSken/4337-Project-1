@@ -46,8 +46,8 @@
       (error "Error: Invalid Expression")) ;; Empty input
     (let-values ([(result remaining) (parse-prefix tokens)])
       (unless (empty? remaining)
-        (error "Error: Invalid Expression:" remaining));; parse-prefix tokens did not succeed
-      result)))
+        (error "Error: Invalid Expression" remaining));; parse-prefix tokens did not succeed
+      (real->double-flonum result))))
 
 (define (run-batch-mode)
   (let ([args (current-command-line-arguments)])
