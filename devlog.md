@@ -10,8 +10,14 @@ Since the argument parsing for batch mode already exists, I can simply include i
 10/24/2025 11:30 PM
 Successfully implemented batch mode with error checking. Will continue testing for additional errors. Will beegin work on implementing interactive mode.
 
-10/25/2025 10:50
+10/25/2025 10:50 AM
 Need to think about how to implement history within my recursive loop. 
 
-10/25/2025 11:40 
+10/25/2025 11:40 AM
 Successfully implemented loop with history displayed and indexed. I now need to find a way to make selection using $. I can probably use a conditional or case statement.
+
+10/25/2025 1:30 PM
+Successfully implemented history with referentiable variables. However, I need to re-implement the minus operator. I forgot it should only negate.
+
+10/25/2025 12:00 AM
+Implemented negation and reworked parsing for whitespaces. However, having trouble with referential history suddenly. Will work on quick fix.
