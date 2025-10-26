@@ -21,3 +21,6 @@ Successfully implemented history with referentiable variables. However, I need t
 
 10/25/2025 12:00 AM
 Implemented negation and reworked parsing for whitespaces. However, having trouble with referential history suddenly. Will work on quick fix.
+
+10/25/2025 1:30 PM
+As I was reworking parsing and tokenizing for whitespace along with negation, I had worked almost everything working. However, I did not commit my changes as there were slight issues when parsing whitespace with $ as input. As I was fixing it, I ran into I caused issues at a broader scale, so I rushed to undo changes up to a certain point at 12:00 AM to submit. Now I have these features all fixed in the most recent commmit and the program should work as intended.
