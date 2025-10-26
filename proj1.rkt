@@ -24,7 +24,6 @@
                            (cons (list->string (reverse current-token)) tokens))])
        (tokenize-helper (cdr chars) '() new-tokens))]
     
-    ;; Operator: +, -, *, /
     [(member (car chars) '(#\+ #\- #\* #\/ #\$))
      (let* ([saved-tokens (if (empty? current-token)
                               tokens
@@ -68,7 +67,7 @@
          (values (- result) rest1))]
       
       [(member token '("+" "*" "/"))
-       (let*-values ([(arg1 rest1) (parse-prefix rest)] ;; recursively compmute next two arguments by prefix notation
+       (let*-values ([(arg1 rest1) (parse-prefix rest)] ;; recursively compute next two arguments by prefix notation
                      [(arg2 rest2) (parse-prefix rest1)])
          (let ([result (cond
                          [(string=? token "+") (+ arg1 arg2)]
@@ -109,26 +108,30 @@
           (printf "  [~a] ~a\n" i result)))))
 
 (define (replace-history-refs tokens history)
-  (map (lambda (token)
-         (cond
-
-           [(not (string? token)) token]
-           
-           [(<= (string-length token) 1) token]
-           
-           [(not (char=? (string-ref token 0) #\$)) token]
-           
-           [else
-            (let* ([index-str (substring token 1)]
-                   [index (string->number index-str)])
-              (if (and (exact-integer? index) (> index 0))
-                  (let ([reversed (reverse history)])
-                    (if (and (>= index 1) (<= index (length reversed)))
-                        (list-ref reversed (- index 1))
-                        (error "Invalid Expression")))
-                  token))]))
-       tokens))
-
+  (cond
+    [(empty? tokens) '()]
+    
+    ;; Check if current token is "$" and next token is a number, continue parsing through tokens
+    [(and (string? (car tokens))
+          (string=? (car tokens) "$")
+          (not (empty? (cdr tokens)))
+          (number? (cadr tokens)))
+     (let* ([index (cadr tokens)]
+            [reversed (reverse history)])
+       (if (and (exact-integer? index) (> index 0) (<= index (length reversed)))
+           (cons (list-ref reversed (- index 1))
+                 (replace-history-refs (cddr tokens) history))
+           (error "Invalid Expression")))]
+    
+    ;; "$" appears alone or with non-number
+    [(and (string? (car tokens))
+          (string=? (car tokens) "$"))
+     (error "Invalid Expression")]
+    
+    ;; Continue parsing through tokens
+    [else
+     (cons (car tokens)
+           (replace-history-refs (cdr tokens) history))]))
 
 
 (define (repl-loop history)
