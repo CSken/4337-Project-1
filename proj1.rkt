@@ -8,8 +8,40 @@
       [(string=? (vector-ref args 0) "--batch") #f]
       [else #t])))
 
+(define (tokenize-helper chars current-token tokens)
+  (cond
+    ;; End of input
+    [(empty? chars)
+     (let ([final-tokens (if (empty? current-token)
+                             tokens
+                             (cons (list->string (reverse current-token)) tokens))])
+       (reverse (map string->token final-tokens)))]
+    
+    ;; Whitespace
+    [(char-whitespace? (car chars))
+     (let ([new-tokens (if (empty? current-token)
+                           tokens
+                           (cons (list->string (reverse current-token)) tokens))])
+       (tokenize-helper (cdr chars) '() new-tokens))]
+    
+    ;; Operator: +, -, *, /
+    [(member (car chars) '(#\+ #\- #\* #\/ #\$))
+     (let* ([saved-tokens (if (empty? current-token)
+                              tokens
+                              (cons (list->string (reverse current-token)) tokens))]
+            [op-token (string (car chars))]
+            [new-tokens (cons op-token saved-tokens)])
+       (tokenize-helper (cdr chars) '() new-tokens))]
+    
+    ;; Digit / char
+    [else
+     (tokenize-helper (cdr chars)
+                      (cons (car chars) current-token)
+                      tokens)]))
+
 (define (tokenize str)
-  (map string->token (string-split str)))
+  (let ([chars (string->list str)])
+    (tokenize-helper chars '() '())))
 
 (define (string->token str)
   (let ([num (string->number str)])
@@ -19,42 +51,48 @@
 
 (define (parse-prefix tokens)
   (when (empty? tokens) ;; Error occurs when input includes an operator without enough arguments
-    (error "Error: Invalid Expression"))
+    (error "Invalid Expression"))
   
   (let ([token (car tokens)]
         [rest (cdr tokens)])
     
     (cond
-
+      
       [(number? token)
-       (values token rest)]   
-      [(member token '("+" "-" "*" "/"))
+       (values token rest)]
+
+      [(string=? token "-")
+       (when (empty? rest)
+         (error "Invalid Expression"))
+       (let-values ([(result rest1) (parse-prefix rest)])
+         (values (- result) rest1))]
+      
+      [(member token '("+" "*" "/"))
        (let*-values ([(arg1 rest1) (parse-prefix rest)] ;; recursively compmute next two arguments by prefix notation
                      [(arg2 rest2) (parse-prefix rest1)])
          (let ([result (cond
                          [(string=? token "+") (+ arg1 arg2)]
-                         [(string=? token "-") (- arg1 arg2)]
                          [(string=? token "*") (* arg1 arg2)]
-                         [(string=? token "/") (/ arg1 arg2)])])
+                         [(string=? token "/") (quotient arg1 arg2)])])
            (values result rest2)))]
       
-      [else (error "Error: Invalid Expression" token)]))) ;; the token is invalid
+      [else (error "Invalid Expression")]))) ;; the token is invalid
 
 (define (eval-prefix-string str history)
   (let* ([tokens (tokenize str)]
          [tokens-with-history (replace-history-refs tokens history)])
     (when (empty? tokens-with-history)
-      (error "Error: Invalid Expression"))
+      (error "Invalid Expression"))
     (let-values ([(result remaining) (parse-prefix tokens-with-history)])
       (unless (empty? remaining)
-        (error "Error: Invalid Expression")) ;; parse prefix tokens did not succeed
+        (error "Invalid Expression")) ;; parse prefix tokens did not succeed
       (real->double-flonum result))))
 
 (define (run-batch-mode)
   (let ([args (current-command-line-arguments)])
     
     (if (< (vector-length args) 2)
-        (eprintf "Error: Invalid Expression") ;; Batch mode requires 2 arguments
+        (eprintf "Invalid Expression") ;; Batch mode requires 2 arguments
         (let ([expr-string (vector-ref args 1)])
           
           (with-handlers ([exn:fail? (lambda (ex)
@@ -87,7 +125,7 @@
                   (let ([reversed (reverse history)])
                     (if (and (>= index 1) (<= index (length reversed)))
                         (list-ref reversed (- index 1))
-                        (error "Error: Invalid Expression")))
+                        (error "Invalid Expression")))
                   token))]))
        tokens))
 
