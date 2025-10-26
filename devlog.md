@@ -18,3 +18,6 @@ Successfully implemented loop with history displayed and indexed. I now need to 
 
 10/25/2025 AM
 Successfully implemented history with referentiable variables. However, I need to re-implement the minus operator. I forgot it should only negate.
+
+10/25/2025 12:00 AM
+Implemented negation and reworked parsing for whitespaces. However, having trouble with referential history suddenly. Will work on quick fix.
