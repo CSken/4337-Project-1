@@ -16,7 +16,7 @@ Need to think about how to implement history within my recursive loop.
 10/25/2025 11:40 AM
 Successfully implemented loop with history displayed and indexed. I now need to find a way to make selection using $. I can probably use a conditional or case statement.
 
-10/25/2025 AM
+10/25/2025 1:30 PM
 Successfully implemented history with referentiable variables. However, I need to re-implement the minus operator. I forgot it should only negate.
 
 10/25/2025 12:00 AM
